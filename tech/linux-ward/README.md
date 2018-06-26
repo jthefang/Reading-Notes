@@ -4,3 +4,4 @@ Linux is a great platform for learning because it doesn’t try to hide anything
 
 ## [Chapter 1](chapter-01.md)
 ## [Chapter 2](chapter-02.md)
+## [Chapter 3](chapter-03.md)
