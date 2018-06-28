@@ -40,3 +40,10 @@ Linux is a great platform for learning because it doesn’t try to hide anything
 - Device name summary
 - udev
 - In-depth: SCSI and the Linux kernel
+
+## [Chapter 4](chapter-04.md)
+- Partitioning disk devices
+- Filesystems
+- swap space
+- Looking forward: disks and user space
+- Inside a traditional filesystem
