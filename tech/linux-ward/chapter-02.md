@@ -75,7 +75,7 @@ The `cat` command outputs the contents of one or more files (concatenating them 
 	- `n` to find next/previous occurence
 	- You can forward output of any program to input of another program: e.g. `grep ie /usr/share/dict/words | less` forwards output of grep search to be displayed by less
 - `pwd` to print name of current working directory
-	- `pwd -P` to show true full path (even if obscured by symbolix links)
+	- `pwd -P` to show true full path (even if obscured by symbolic links)
 - `diff file1 file2` outputs the differences between 2 text files
 	- `diff -u` is another format
 - `file file` outputs the format of a file

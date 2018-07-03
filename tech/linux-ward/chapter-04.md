@@ -123,7 +123,7 @@ Filesystems as system interfaces
 	- don't overuse a temporary filesystem because the system eventually runs out of memory and programs will crash
 
 ## swap space
-You can augment RAM with disk space. Pieces of idle programs are swapped to disk in exchange for active pieces residing on the disk (i.e. swap space)
+You can augment RAM with disk space. Pieces of idle programs are swapped to disk (i.e. swap space) to free up space in memory (RAM) which is much faster to access; later the swap data can be paged back in when its needed
 
 - `free` outputs the current swap usage in kilobytes
 - to use an entire disk partition as swap:
