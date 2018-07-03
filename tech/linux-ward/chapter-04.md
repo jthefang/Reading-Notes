@@ -1,7 +1,153 @@
 # Chapter 4. Disks and Filesystems
 
+How to work with disks on Linux systems: partiioning, creating and maintaining file systems in partitions, working with swap space
+
+- Partitions are subdivisions of whole disks that are presented as a block device (e.g. */dev/sda1, /dev/sdb3*)
+	- defined in partition table (also stored on the disk)
+	- most systems need to reserve partitions for critical system tasks
+- Filesystem is the database of files/directories you usually interact with
+	- live inside partitions
+	- get the appropriate partition location from the partition table, search filesystem database on that partititon for file
+- Can interact with disk data with the filesystem or by directly talking to the disk devices
+
 ## Partitioning disk devices
+- Traditional partition table = Master Boot Record (MBR)
+- Newer standard table = Globally Unique Identifier Partition Table (GPT)
+
+Tools:
+- __parted__: text-based tool that supports MBR and GPT
+- __gparted__: graphical version of `parted`
+- __fdisk__: traditional text-based disk partitioning tool (only MBR)
+- __gdisk__: version of `fdisk` that supports GPT (not MBR)
+- these tools were meant for partitioning and should not be used for filesystem manipulation
+
+- `parted -l` to view your system's partition tables
+	- the type of table is listed (`msdos` = MBR, `gpt` = GPT)
+	- primary partition = normal subdivision of the disk, limit of 4 primary partitions
+	- extended partition: if you want more than 4 partitions, designate a partition as extended and subdivide it into logical partitions that the OS interacts with as any other partition
+	- `fdisk -l` to list the MBR partition tables	
+- debug messages from programs can be read with `dmesg`
+- changing partition tables:
+	- difficult to recover data on partitions you delete
+	- ensure that no partitions on your target disk are currently in use (Linux automatically mounts any detected filesystem)
+	- can use `parted` or `gparted` to partition or `fdisk`/`gdisk`
+		- `fdisk`: you design the new partition table before making the actual changes to disk; tells kernel to reread the partition table (printed in `dmesg`)
+		- `parted`: partitions are created, modified, removed as you issue the commands; `udevadm monitor --kernel` to see partition changes
+		- `cat /proc/partitions` for full partition information, or check `sys/block/device/` or `/dev`
+		- `blockdev --rereadpt /dev/sdf` forces kernel to reload the partition table on */dev/sdf*
+		- both programs directly modify disk without using kernel
+- `cat /sys/block/sdf/sdf2/start` prints the starting byte of the 2nd partition of the *sdf* disk; optimal partitions for SSD drives start at 4096 byte boundaries (i.e. are divisible 4096)
+
 ## Filesystems
+- Filesystem is what you're used to interacting with (`cd`, `ls`) that organizes files/directories into a hierarchy that users can navigate easily (also used for system interfaces */sys, /proc*)
+- Virtual File System (VFS) is an abstraction layer that, like SCSI, standardizes the communications user-space programs do via the kernel to access files/directories on disk
+
+Common types of filesystems:
+- Fourth extended filesystem (ext4) current iteration of filesystems native to Linux; ext2 was a longtime default
+- ISO 9660 (iso9660) is a CD-ROM standard
+- FAT filesystems (msdos, vfat, umsdos) for Microsoft systems
+- HFS+ (hfsplus) is an Apple standard for most Macintosh systems
+- New filesystems e.g. Btrfs
+
+Creating a filesystem:
+- `mkfs -t ext4 /dev/sdf2` to create an ext4 filesystem partition on */dev/sdf2*
+	- `mkfs` prints diagnostic output as it works, record info pertaining to superblock backup numbers for recovery after disk failure
+	- creating a filesystem destroys the old data in the partition (only do this after adding a new disk or repartitioning an old one)
+	- different creation programs for different filesystems, e.g. `mkfs -t ext4` calls `mkfs.ext4` which is actually symbolically linked to `mke2fs` (do a `ls -l /sbin/mkfs.*` to see the `mkfs` programs)
+
+Mounting a filesystem:
+- process of attaching a filesystem
+- need to know the 1) filesystem's device (e.g. which disk partition, where is the physical data), 2) filesystem type, 3) mount point (where to attach the filesystem in the directory hierarchy)
+- `mount` to display current filesystem status of your system
+	- each line = a currently mounted filesystem
+	- shows device (some are not real physical devices), mount point (some directory path), the filesystem type (shorthand id), and the mount options in parentheses (see below on mount options)
+- `mount -t type device mountpoint` to mount a filesystem of `type` on `device` onto the system at `mountpoint`
+	- usually the `-t type` option can be omitted and auto-detected by the system
+- `umount mountpoint` to detach a filesystem (can also do `umount device`)
+- above is mounting by device names, but these names are arbitrarily assigned by the order in which the kernel finds devices
+	- can use the UUID of filesystems (generated by filesystem creation programs like `mke2fs`)
+	- `blkid` (block id) to view list of devices and their corresponding UUIDs and filesystems; use `sudo`
+	- `mount UUID={whatever it is} mountpoint` to mount by UUID
+	- can use `tune2fs` to change the UUID of a filesystem
+
+Reading and writing:
+- Linux buffers all writes to disk (doesn't write immediately, caches changes in RAM, writes all at once at convenient times to improve performance)
+- can use `sync` command to manually tell kernel to write buffer to disk
+	- kernel automatically synchronizes when you unmount a filesystem with `umount`
+
+Filesystem mount options
+- `-r` mounts the filesystem in read-only mode (not necessary for read-only devices like CD-ROM)
+- `-n` ensures that `mount` doesn't try to update the system runtime mount database */etc/mtab*
+- `-t type` specifies filesystem type
+- `-o option` for other options:
+	- `-o ro` = the `-r` option
+	- `-o ro,conv=auto` specifies read-only and auto-conversion of some text files from DOS to Unix style
+	- `exec, noexec` enables/disables execution of programs on the filesystem
+	- `suid, nosuid` enables/disables setuid programs
+	- `rw` mounts filesystem in read-write mode (`ro` for read-only)
+	- `conv=rule` on FAT-based filesystems converts newline charactes in files based on rule (`binary, text,` or `auto`)
+		- this option can damage files, so consider using it only in read-only mode
+- `mount -n -o remount /` remounts the root in read-write mode (assuming device listing for `/` is in */etc/fstab*, else you must specify the device)
+
+The */etc/fstab* filesystem table
+- permanent list of filesystems and options kept in */etc/fstab* to mount filesystems automatically at boot time
+- each line in the file = one filesystem
+	- from left to right the fields are: 1) device/UUID, 2) mountpoint, 3) filesystem type, 4) options, 5) backup info for use by the dump command (always use 0 in this field), and 6) the filesystem integrity test order (1 for the root filesystem so that `fsck` runs on it first, 0 to disable bootup check for everything else like CD-ROM drives, swap, and the */proc* file-system)
+	- `mount -a` to mount all entries in the */etc/fstab* file that don't contain the `noauto` option (used to prevent boot-time mount of removable-media devices)
+	- other options include `defaults` (use the `mount` defaults for read-write mode, executables, enabling device files, the setuid bit, etc.), `errors` (ext2-specific parameter that controls kernel behavior when it encounters an error during mounting), `user` (allows unprivileged users to mount a particular entry)
+- */etc/fstab.d* directory for individual filesystem configuration files
+- `df` command to view current size/utilization of your mounted filesystems
+	- filesystem, 1K-blocks (capacity of the filesystem in 1024 byte blocks), \# of occupied blocks, \# of available blocks, capacity = percentage of blocks in use, mountpoint
+	- some 5 percent of the total capacity is unaccounted for, reserved for superuser use so that the system doesn't just fail when disk space runs out
+- `du` to print the disk usage of *every* directory in the hierarchy starting at the current working directory
+	- `du -s` prints just the grand total of disk usage of the current working directory
+	- `du -s *` to print the disk usage of just direct child directories 
+
+Checking and repairing filesystems
+- filesystem errors are usually caused by user shutting down system rudely (e.g. pulling the power cord when the system is altering the filesystem or before it has a chance to write its buffer to the disk)
+- checks are necessary to maintain consistency between cache, disk and what the filesystem has on record
+- `fsck /dev/sdb1` is a filesystem checking tool (accepts a device or mount point [as listed in */etc/fstab*] as the argument)
+	- just like `mkfs` has a specific version for each filesystem type (e.g. `e2fsck` for extended filesystems)
+	- don't use on a mounted filesystem because it could alter the disk data as you run the check => corrupts file; only `fsck` on the read-only root partition in single-user mode
+- can't mount a broken ext3 or ext4 filesystem with a non-empty journal; to flush the journal run `e2fsck -fy /dev/disk_device` where disk device is the device of the ext3/4 filesystem
+- can try `debugfs` or extracting the entire filesystem image from the disk with `dd` in the worst case
+
+Filesystems as system interfaces
+- rather than just for data on devices, filesystems can represent process IDs and kernel diagnostics (e.g. the */dev* mechanism for using files as I/O interfaces)
+- */proc* containes information on the system processes
+	- each numbered directory is a process ID of a current process on the system, files in those directories give additional info about those processes
+	- */proc/self* is the current process
+- */sys* is the system filesystem for devices
+- tmpf is mounted on */run* and other locations
+	- can use physical memory and swap space as temporary storage 
+	- don't overuse a temporary filesystem because the system eventually runs out of memory and programs will crash
+
 ## swap space
-## Looking forward: disks and user space
+You can augment RAM with disk space. Pieces of idle programs are swapped to disk in exchange for active pieces residing on the disk (i.e. swap space)
+
+- `free` outputs the current swap usage in kilobytes
+- to use an entire disk partition as swap:
+	- Make sure the partition is empty
+	- `mkswap dev` where dev is the partition's device, putting a swap signature on the partition
+	- `swapon dev` to register the space with the kernel
+	- put a new swap entry in */etc/fstab* to make the system use the swap space right after boot (example entry: `/dev/sda5 none swap sw 0 0` to use */dev/sda5* as a swap partition)
+- to use a file as swap space:
+	- `dd if=/dev/zero of=swap_file bs=1024k count=num_mb` creates a file swap_file with size num_mb in megabytes
+	- `mkswap swap_file`
+	- `swapon swap_file` adds it to the swap pool
+		- use `swapoff` to remove a swap partition or file from the kernel's active pool
+
 ## Inside a traditional filesystem
+- 1) A pool of data blocks where you store data, and 2) a database system that manages the data pool
+	- database has an *inode* data structure describing a file: its type, permissions, where its data resides in the data pool
+	- each inode has an id in the inode table
+	- filenames and directories are implemented as inodes
+- each inode has an id, a count of the links from other inodes to itself, its type (dir or file), and points to some data structure in the data pool
+	- e.g. a directory inode points to data structure; has data about files in that directory and their respective inode ids
+	- `ls -i` to get the inode ids/numbers for files/directories within your current working directory
+	- use `stat` for more detailed inode info
+	- link count gives how many references there are to that inode in the data pool (i.e. how many directory entries there are for this file/dir)
+	- when you run `rm` it removes the directory entry, decrements the link count for the inode (at 0, the inode can be deleted)
+- block bitmap is a section of reserved data used to track blocks in the data pool, i.e. which are used/free for allocation
+- errors in filesystem when the inode table data doesn't match the block allocation data or the link counts incorrect (happens when system doesn't shutdown correctly)
+	- what `fsck` checks for 

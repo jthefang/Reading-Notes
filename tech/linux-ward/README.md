@@ -45,5 +45,25 @@ Linux is a great platform for learning because it doesn’t try to hide anything
 - Partitioning disk devices
 - Filesystems
 - swap space
-- Looking forward: disks and user space
 - Inside a traditional filesystem
+
+## [Chapter 5](chapter-05.md)
+- Startup messages
+- Kernel initialization and boot options
+- Kernel parameters
+- Boot loaders
+- GRUB introduction
+- UEFI secure boot problems
+- Chainloading other OS's
+- Boot loader details
+
+## [Chapter 6](chapter-06.md)
+- Introduction to init
+- System V runlevels
+- Identifying your init
+- systemd
+- Upstart
+- System V init
+- Shutting down your system
+- The initial RAM filesystem
+- Emergency booting and single-user mode
