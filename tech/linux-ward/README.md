@@ -62,7 +62,7 @@ Linux is a great platform for learning because it doesn’t try to hide anything
 - System V runlevels
 - Identifying your init
 - systemd
-- Upstart
+- --Upstart--
 - System V init
 - Shutting down your system
 - The initial RAM filesystem

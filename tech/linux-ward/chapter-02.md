@@ -172,6 +172,7 @@ The manual pages are divided into sections:
 | 6 		| Games 					|
 | 7 		| File formats, conventions, and encodings (ASCII, suffixes, etc) |
 | 8 		| System commands and servers |
+
 - `man` normally displays the first manual page it finds matching a search term
 	- you can specify a manual page by section, `man 5 passwd` displays the `/etc/passwd` file description as opposed to the `passwd` command
 	- when someone refers to a manual page, the section number is specified in parenthesis (e.g. ps(1) or ping(8))

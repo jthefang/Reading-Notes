@@ -162,6 +162,32 @@ systemd on-demand and resource-parallelized startup
 
 ## Upstart
 ## System V init
+Primordial init implementation. Core idea is to support orderly bootup (to different runlevels) with carefully sequenced process startup
+
+- 2 major components: a central configuration file and a large set of boot scripts augmented by a symbolic link farm
+- configuration file */etc/inittab* with a line like `id:5:initdefault:` (indicates that default runlevel is 5)
+	- all lines in *inittab* have this form of 4 fields separated by colons
+	- unique identifier (short string, e.g. `id`), applicable runlevel number(s), action that init should take (e.g. default runlevel to 5), command to execute (optional)
+
+e.g.
+`15:5:wait:/etc/rc.d/rc 5`
+Run `/etc/rc.d/rc 5` once when entering runlevel 5, then `wait` for this command to finish before doing anything else
+
+In addition to `initdefault` and `wait`, common *inittab* actions are:
+- `respawn` tells init to run the command that follows and, if the command finishes executing run it again
+	e.g. `1:2345:respawn:/sbin/mingetty tty1`
+- `ctrlaltdel` controls what the system does when you press Ctrl + Alt + Del on a virtual console (usually some sort of reboot command using the `shutdown` command)
+- `sysinit` is the first thing that init should run when starting, before entering any runlevels
+- see inittab manual page for more
+
+Startup command sequence
+- Recall `15:5:wait:/etc/rc.d/rc 5`
+- The inittab line calling `rc` triggers run commands (scripts, programs or services that start other programs)
+- The 5 indicates runlevel 5, whose corresponding commands are in */etc/rc.d/rc5.d* or */etc/rc5.d*
+- Starts commands in these directories in order of their number (specified in their name); these commands are usualyl shell scripts that start programs in */sbin* or */usr/sbin*
+- Commands that start with S indicate they should start programs, K indicates they should stop programs (usually in runlevels that shutdown the system)
+- Should run these commands by hand through the *init.d* directory
+
 ## Shutting down your system
 ## The initial RAM filesystem
 ## Emergency booting and single-user mode
