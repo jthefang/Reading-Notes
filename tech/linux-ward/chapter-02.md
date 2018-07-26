@@ -223,10 +223,12 @@ The manual pages are divided into sections:
 	- TIME - total CPU time used by process so far
 	- COMMAND - names the command for the program, but note that the process can change this field from its original value
 - We use the BSD style for `ps` options:
+
 | `ps x`  | Show all of your running processes |
 | `ps ax` | Show all processes on the system, even those you don't own |
 | `ps u`  | More detailed info on processes |
 | `ps w`  | Show full command lines, not just what fits on one line |
+
 	- can combine options like with other commands (e.g. `ps auxw`)
 	- can check on specific process `ps u $$` checks the current shell process (`$$` is a shell variable evaluating to the current shell's PID)
 - The kernel can send signals to processes with `kill` command
@@ -251,6 +253,7 @@ The manual pages are divided into sections:
 - this string is the file's mode
 	- the first character denotes the file type: a dash `-` denotes a regular old file, a `d` denotes a directory
 	- the following are permission sets for user, group, and other (world), in that order (e.g. next 3 characters `rw-` indicate user can read, write, next 3 characters for the file's group permissions, next 3 characters for anyone else on the system)
+
 | `r` | Means that the file is readable |
 | `w` | Means that the file is writable |
 | `x` | Means that the file is executable (can be run as a program) |
@@ -260,6 +263,7 @@ The manual pages are divided into sections:
 - Modifying permissions with `chmod`
 	- `chmod g+r file` adds read permission for the group to file (replace g with u for user, o for others, a for all users)
 	- can use absolute permission modes to set all permission bits at once (e.g. `chmod 644 file`); essentially predefined sets of permissions
+
 | Mode 	| Meaning | Used for |
 |-------|---------|----------|
 | 644 	| user: r/w; group, other: r | files |
