@@ -229,7 +229,7 @@ The manual pages are divided into sections:
 | `ps u`  | More detailed info on processes |
 | `ps w`  | Show full command lines, not just what fits on one line |
 
-	- can combine options like with other commands (e.g. `ps auxw`)
+- can combine options like with other commands (e.g. `ps auxw`)
 	- can check on specific process `ps u $$` checks the current shell process (`$$` is a shell variable evaluating to the current shell's PID)
 - The kernel can send signals to processes with `kill` command
 	- `kill pid` sends the `TERM` terminate signal
@@ -258,7 +258,8 @@ The manual pages are divided into sections:
 | `w` | Means that the file is writable |
 | `x` | Means that the file is executable (can be run as a program) |
 | `-` | Means nothing |
-| `s` | Instead of `x` means the executable is *setuid*, meaning it executes as the file owner instead of you. Used to run as root in order to get the privileges needed by the program |
+
+- An `s` instead of `x` means the executable is *setuid*, meaning it executes as the file owner instead of you. Used to run as root in order to get the privileges needed by the program
 
 - Modifying permissions with `chmod`
 	- `chmod g+r file` adds read permission for the group to file (replace g with u for user, o for others, a for all users)
