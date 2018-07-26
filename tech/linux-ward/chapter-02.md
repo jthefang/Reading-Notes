@@ -224,6 +224,8 @@ The manual pages are divided into sections:
 	- COMMAND - names the command for the program, but note that the process can change this field from its original value
 - We use the BSD style for `ps` options:
 
+| Command | Description |
+|---------|-------------|
 | `ps x`  | Show all of your running processes |
 | `ps ax` | Show all processes on the system, even those you don't own |
 | `ps u`  | More detailed info on processes |
@@ -254,6 +256,8 @@ The manual pages are divided into sections:
 	- the first character denotes the file type: a dash `-` denotes a regular old file, a `d` denotes a directory
 	- the following are permission sets for user, group, and other (world), in that order (e.g. next 3 characters `rw-` indicate user can read, write, next 3 characters for the file's group permissions, next 3 characters for anyone else on the system)
 
+| Character | Permission |
+|-----------|-------------|
 | `r` | Means that the file is readable |
 | `w` | Means that the file is writable |
 | `x` | Means that the file is executable (can be run as a program) |
